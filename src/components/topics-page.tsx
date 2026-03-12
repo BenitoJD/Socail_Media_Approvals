@@ -15,13 +15,17 @@ type TopicRecord = {
 
 type TopicsPageProps = {
   initialTopics: TopicRecord[];
+  initialHandleDirectory: Array<{
+    platform: string;
+    handle: string;
+  }>;
 };
 
 type PlatformFilter = "ALL" | "Instagram" | "LinkedIn" | "X";
 
 const platformFilters: PlatformFilter[] = ["ALL", "Instagram", "LinkedIn", "X"];
 
-export function TopicsPage({ initialTopics }: TopicsPageProps) {
+export function TopicsPage({ initialTopics, initialHandleDirectory }: TopicsPageProps) {
   const [topics, setTopics] = useState(initialTopics);
   const [platformFilter, setPlatformFilter] = useState<PlatformFilter>("ALL");
   const [handleFilter, setHandleFilter] = useState("ALL");
@@ -43,6 +47,16 @@ export function TopicsPage({ initialTopics }: TopicsPageProps) {
     ],
     [topics],
   );
+
+  const topicFormHandleOptions = useMemo(() => {
+    const scoped = initialHandleDirectory.filter((entry) =>
+      topicForm.platform ? entry.platform === topicForm.platform : true,
+    );
+
+    return Array.from(new Set(scoped.map((entry) => entry.handle))).sort((a, b) =>
+      a.localeCompare(b),
+    );
+  }, [initialHandleDirectory, topicForm.platform]);
 
   const filteredTopics = useMemo(() => {
     return topics.filter((topic) => {
@@ -143,14 +157,20 @@ export function TopicsPage({ initialTopics }: TopicsPageProps) {
               <option value="X">X</option>
             </select>
 
-            <input
+            <select
               value={topicForm.handle}
               onChange={(event) =>
                 setTopicForm((current) => ({ ...current, handle: event.target.value }))
               }
-              placeholder="@handle"
-              className="w-full rounded-2xl border border-zinc-300 px-4 py-3 text-sm outline-none focus:border-zinc-950"
-            />
+              className="w-full rounded-2xl border border-zinc-300 bg-white px-4 py-3 text-sm outline-none focus:border-zinc-950"
+            >
+              <option value="">Select handle</option>
+              {topicFormHandleOptions.map((handle) => (
+                <option key={handle} value={handle}>
+                  {handle}
+                </option>
+              ))}
+            </select>
 
             <input
               value={topicForm.topic}
