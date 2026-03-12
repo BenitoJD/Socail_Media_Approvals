@@ -1,0 +1,49 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Post {
+  id          Int             @id @default(autoincrement())
+  platform    String?
+  handle      String?
+  text        String
+  status      PostStatus      @default(PENDING)
+  images      PostImage[]
+  agentState  AgentPostState?
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+}
+
+model PostImage {
+  id        Int      @id @default(autoincrement())
+  postId    Int
+  objectKey String
+  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+}
+
+model AgentPostState {
+  id        Int             @id @default(autoincrement())
+  postId     Int            @unique
+  status     AgentPostStatus @default(NOT_POSTED)
+  postedAt   DateTime?
+  post       Post           @relation(fields: [postId], references: [id], onDelete: Cascade)
+  createdAt  DateTime       @default(now())
+  updatedAt  DateTime       @updatedAt
+}
+
+enum PostStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum AgentPostStatus {
+  NOT_POSTED
+  POSTED
+}

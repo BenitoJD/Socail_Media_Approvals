@@ -1,14 +1,18 @@
 {
-  "name": "cmssocialmedia20260312",
+  "name": "cms-social-media",
   "version": "0.1.0",
   "private": true,
   "scripts": {
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "db:push": "prisma db push",
+    "db:generate": "prisma generate"
   },
   "dependencies": {
+    "@prisma/client": "^6.6.0",
+    "minio": "^8.0.7",
     "next": "16.1.6",
     "react": "19.2.3",
     "react-dom": "19.2.3"
@@ -20,6 +24,7 @@
     "@types/react-dom": "^19",
     "eslint": "^9",
     "eslint-config-next": "16.1.6",
+    "prisma": "^6.6.0",
     "tailwindcss": "^4",
     "typescript": "^5"
   }
