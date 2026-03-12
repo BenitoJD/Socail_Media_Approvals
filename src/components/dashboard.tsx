@@ -17,6 +17,8 @@ type PostRecord = {
   handle: string | null;
   text: string;
   status: "PENDING" | "APPROVED" | "REJECTED";
+  agentPostingStatus: "NOT_POSTED" | "POSTED";
+  postedAt: string | null;
   createdAt: string;
   updatedAt: string;
   images: ImageRecord[];
@@ -53,6 +55,11 @@ function getStatusClasses(status: PostRecord["status"]) {
   if (status === "APPROVED") return "bg-emerald-100 text-emerald-700";
   if (status === "REJECTED") return "bg-red-100 text-red-700";
   return "bg-amber-100 text-amber-700";
+}
+
+function getPostingStatusClasses(status: PostRecord["agentPostingStatus"]) {
+  if (status === "POSTED") return "bg-sky-100 text-sky-700";
+  return "bg-zinc-200 text-zinc-700";
 }
 
 function isTypingTarget(target: EventTarget | null) {
@@ -749,6 +756,18 @@ export function Dashboard({ initialPosts }: DashboardProps) {
                     </span>
                   </div>
 
+                  <div className="mt-3">
+                    <span
+                      className={`rounded-full px-2.5 py-1 text-[11px] font-semibold ${
+                        selectedPost?.id === post.id
+                          ? "bg-white/15 text-white"
+                          : getPostingStatusClasses(post.agentPostingStatus)
+                      }`}
+                    >
+                      {post.agentPostingStatus === "POSTED" ? "Posted" : "Not posted"}
+                    </span>
+                  </div>
+
                   <p
                     className={`mt-3 line-clamp-3 text-sm leading-6 ${
                       selectedPost?.id === post.id ? "text-zinc-200" : "text-zinc-700"
@@ -802,22 +821,29 @@ export function Dashboard({ initialPosts }: DashboardProps) {
             <div className="flex h-full flex-col">
               <div className="border-b border-zinc-200 px-5 py-4">
                 <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
-                  <div>
-                    <div className="flex flex-wrap items-center gap-2">
-                      <span className="rounded-full bg-zinc-100 px-3 py-1 text-xs font-semibold text-zinc-700">
-                        {selectedPost.platform || "Unknown"}
-                      </span>
+                    <div>
+                      <div className="flex flex-wrap items-center gap-2">
+                        <span className="rounded-full bg-zinc-100 px-3 py-1 text-xs font-semibold text-zinc-700">
+                          {selectedPost.platform || "Unknown"}
+                        </span>
                       <span className="rounded-full bg-zinc-100 px-3 py-1 text-xs font-medium text-zinc-500">
                         {selectedPost.handle || "No handle"}
                       </span>
-                      <span
-                        className={`rounded-full px-3 py-1 text-xs font-semibold ${getStatusClasses(
-                          selectedPost.status,
-                        )}`}
-                      >
-                        {selectedPost.status}
-                      </span>
-                    </div>
+                        <span
+                          className={`rounded-full px-3 py-1 text-xs font-semibold ${getStatusClasses(
+                            selectedPost.status,
+                          )}`}
+                        >
+                          {selectedPost.status}
+                        </span>
+                        <span
+                          className={`rounded-full px-3 py-1 text-xs font-semibold ${getPostingStatusClasses(
+                            selectedPost.agentPostingStatus,
+                          )}`}
+                        >
+                          {selectedPost.agentPostingStatus === "POSTED" ? "Posted" : "Not posted"}
+                        </span>
+                      </div>
                     <p className="mt-3 text-sm text-zinc-500">
                       {selectedIndex + 1} / {filteredPosts.length} in current queue
                     </p>
@@ -946,7 +972,7 @@ export function Dashboard({ initialPosts }: DashboardProps) {
                               void handleEditImageUpload(event.target.files);
                               event.target.value = "";
                             }}
-                            className="block rounded-full border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-600 file:mr-3 file:rounded-full file:border-0 file:bg-zinc-950 file:px-4 file:py-2 file:text-sm file:font-medium file:text-white"
+                            className="block max-w-full text-sm text-zinc-600 file:mr-3 file:rounded-full file:border-0 file:bg-zinc-950 file:px-4 file:py-2 file:font-medium file:text-white hover:file:bg-zinc-800"
                           />
                         </div>
                         <textarea
@@ -1039,6 +1065,20 @@ export function Dashboard({ initialPosts }: DashboardProps) {
                           {selectedPost.images.length}
                         </span>
                       </div>
+                      <div className="flex items-center justify-between gap-3">
+                        <span className="text-zinc-500">Posting</span>
+                        <span className="font-medium text-zinc-900">
+                          {selectedPost.agentPostingStatus === "POSTED" ? "Posted" : "Not posted"}
+                        </span>
+                      </div>
+                      {selectedPost.postedAt ? (
+                        <div className="flex items-center justify-between gap-3">
+                          <span className="text-zinc-500">Posted at</span>
+                          <span className="font-medium text-zinc-900">
+                            {new Date(selectedPost.postedAt).toLocaleString()}
+                          </span>
+                        </div>
+                      ) : null}
                     </div>
                   </div>
 
@@ -1147,7 +1187,7 @@ export function Dashboard({ initialPosts }: DashboardProps) {
                       void handleCreateImageUpload(event.target.files);
                       event.target.value = "";
                     }}
-                    className="block rounded-full border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-600 file:mr-3 file:rounded-full file:border-0 file:bg-zinc-950 file:px-4 file:py-2 file:text-sm file:font-medium file:text-white"
+                    className="block max-w-full text-sm text-zinc-600 file:mr-3 file:rounded-full file:border-0 file:bg-zinc-950 file:px-4 file:py-2 file:font-medium file:text-white hover:file:bg-zinc-800"
                   />
                 </div>
                 {createForm.images ? (

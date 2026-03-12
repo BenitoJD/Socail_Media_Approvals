@@ -13,6 +13,7 @@ const accessKey = process.env.MINIO_ACCESS_KEY;
 const secretKey = process.env.MINIO_SECRET_KEY;
 
 let client: Client | null = null;
+let ensuredBucket: Promise<void> | null = null;
 
 function getClient() {
   if (client) {
@@ -43,12 +44,35 @@ export function getImageUrl(objectKey: string) {
   return `${publicBaseUrl}/${bucket}/${key}`;
 }
 
+async function ensureBucketConfigured() {
+  if (!bucket) {
+    throw new Error("MinIO bucket is not configured.");
+  }
+
+  if (!ensuredBucket) {
+    ensuredBucket = (async () => {
+      const minio = getClient();
+      const exists = await minio.bucketExists(bucket);
+
+      if (!exists) {
+        await minio.makeBucket(bucket);
+      }
+    })().catch((error) => {
+      ensuredBucket = null;
+      throw error;
+    });
+  }
+
+  await ensuredBucket;
+}
+
 export async function uploadImageToMinio(file: File) {
   if (!bucket) {
     throw new Error("MinIO bucket is not configured.");
   }
 
   const minio = getClient();
+  await ensureBucketConfigured();
   const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, "-");
   const objectKey = `uploads/${new Date().toISOString().slice(0, 10)}/${crypto.randomUUID()}-${safeName}`;
   const buffer = Buffer.from(await file.arrayBuffer());
