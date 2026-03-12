@@ -709,6 +709,13 @@ export function Dashboard({
             >
               View topics
             </Link>
+
+            <Link
+              href="/topic-refreshes"
+              className="rounded-full bg-emerald-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-emerald-500"
+            >
+              View refresh prompts
+            </Link>
           </div>
         </div>
       </section>

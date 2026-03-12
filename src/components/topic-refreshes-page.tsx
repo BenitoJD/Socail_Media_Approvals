@@ -3,18 +3,17 @@
 import Link from "next/link";
 import { useMemo, useState, useTransition } from "react";
 
-type TopicRecord = {
+type TopicRefreshRecord = {
   id: number;
   platform: string;
   handle: string;
-  topic: string;
-  notes: string | null;
+  prompt: string;
   createdAt: string;
   updatedAt: string;
 };
 
-type TopicsPageProps = {
-  initialTopics: TopicRecord[];
+type TopicRefreshesPageProps = {
+  initialTopicRefreshes: TopicRefreshRecord[];
   initialHandleDirectory: Array<{
     platform: string;
     handle: string;
@@ -25,86 +24,92 @@ type PlatformFilter = "ALL" | "Instagram" | "LinkedIn" | "X";
 
 const platformFilters: PlatformFilter[] = ["ALL", "Instagram", "LinkedIn", "X"];
 
-export function TopicsPage({ initialTopics, initialHandleDirectory }: TopicsPageProps) {
-  const [topics, setTopics] = useState(initialTopics);
+export function TopicRefreshesPage({
+  initialTopicRefreshes,
+  initialHandleDirectory,
+}: TopicRefreshesPageProps) {
+  const [topicRefreshes, setTopicRefreshes] = useState(initialTopicRefreshes);
   const [platformFilter, setPlatformFilter] = useState<PlatformFilter>("ALL");
   const [handleFilter, setHandleFilter] = useState("ALL");
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
-  const [topicForm, setTopicForm] = useState({
+  const [form, setForm] = useState({
     platform: "",
     handle: "",
-    topic: "",
-    notes: "",
+    prompt: "",
   });
 
   const handleOptions = useMemo(
     () => [
       "ALL",
-      ...Array.from(new Set(topics.map((topic) => topic.handle.trim()))).sort((a, b) =>
-        a.localeCompare(b),
-      ),
+      ...Array.from(
+        new Set(topicRefreshes.map((topicRefresh) => topicRefresh.handle.trim())),
+      ).sort((a, b) => a.localeCompare(b)),
     ],
-    [topics],
+    [topicRefreshes],
   );
 
-  const topicFormHandleOptions = useMemo(() => {
+  const formHandleOptions = useMemo(() => {
     const scoped = initialHandleDirectory.filter((entry) =>
-      topicForm.platform ? entry.platform === topicForm.platform : true,
+      form.platform ? entry.platform === form.platform : true,
     );
 
     return Array.from(new Set(scoped.map((entry) => entry.handle))).sort((a, b) =>
       a.localeCompare(b),
     );
-  }, [initialHandleDirectory, topicForm.platform]);
+  }, [form.platform, initialHandleDirectory]);
 
-  const filteredTopics = useMemo(() => {
-    return topics.filter((topic) => {
+  const filteredTopicRefreshes = useMemo(() => {
+    return topicRefreshes.filter((topicRefresh) => {
       const platformMatches =
-        platformFilter === "ALL" ? true : topic.platform.trim() === platformFilter;
-      const handleMatches = handleFilter === "ALL" ? true : topic.handle.trim() === handleFilter;
+        platformFilter === "ALL" ? true : topicRefresh.platform.trim() === platformFilter;
+      const handleMatches =
+        handleFilter === "ALL" ? true : topicRefresh.handle.trim() === handleFilter;
       return platformMatches && handleMatches;
     });
-  }, [handleFilter, platformFilter, topics]);
+  }, [handleFilter, platformFilter, topicRefreshes]);
 
-  async function refreshTopics() {
-    const response = await fetch("/api/topics", { cache: "no-store" });
+  async function refreshTopicRefreshes() {
+    const response = await fetch("/api/topic-refreshes", { cache: "no-store" });
 
     if (!response.ok) {
-      throw new Error("Failed to refresh topics.");
+      throw new Error("Failed to refresh topic refresh rows.");
     }
 
-    setTopics((await response.json()) as TopicRecord[]);
+    setTopicRefreshes((await response.json()) as TopicRefreshRecord[]);
   }
 
-  function handleTopicSubmit(event: React.FormEvent<HTMLFormElement>) {
+  function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setError(null);
 
     startTransition(async () => {
       try {
-        const response = await fetch("/api/topics", {
-          method: "POST",
+        const response = await fetch("/api/topic-refreshes", {
+          method: "PUT",
           headers: {
             "Content-Type": "application/json",
           },
-          body: JSON.stringify(topicForm),
+          body: JSON.stringify(form),
         });
 
         if (!response.ok) {
           const result = (await response.json().catch(() => null)) as { error?: string } | null;
-          throw new Error(result?.error || "Failed to create topic.");
+          throw new Error(result?.error || "Failed to save topic refresh.");
         }
 
-        setTopicForm({
+        setForm({
           platform: "",
           handle: "",
-          topic: "",
-          notes: "",
+          prompt: "",
         });
-        await refreshTopics();
-      } catch (topicError) {
-        setError(topicError instanceof Error ? topicError.message : "Failed to create topic.");
+        await refreshTopicRefreshes();
+      } catch (topicRefreshError) {
+        setError(
+          topicRefreshError instanceof Error
+            ? topicRefreshError.message
+            : "Failed to save topic refresh.",
+        );
       }
     });
   }
@@ -115,28 +120,30 @@ export function TopicsPage({ initialTopics, initialHandleDirectory }: TopicsPage
         <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
           <div>
             <p className="text-xs font-semibold uppercase tracking-[0.22em] text-zinc-500">
-              Topic Planning
+              Topic Refresh
             </p>
             <h1 className="mt-1 text-3xl font-semibold tracking-tight text-zinc-950">
-              Save topics by platform and handle
+              Store one prompt per platform and handle
             </h1>
             <p className="mt-2 text-sm text-zinc-500">
-              Each topic row is uniquely constrained by platform, handle, and topic.
+              This page uses the agent-ready topic refresh API with one row per account.
             </p>
           </div>
 
-          <Link
-            href="/"
-            className="rounded-full bg-zinc-950 px-4 py-2 text-sm font-semibold !text-white transition hover:bg-zinc-800"
-          >
-            Back to posts
-          </Link>
-          <Link
-            href="/topic-refreshes"
-            className="rounded-full bg-emerald-600 px-4 py-2 text-sm font-semibold !text-white transition hover:bg-emerald-500"
-          >
-            View refresh prompts
-          </Link>
+          <div className="flex flex-wrap gap-3">
+            <Link
+              href="/"
+              className="rounded-full bg-zinc-950 px-4 py-2 text-sm font-semibold !text-white transition hover:bg-zinc-800"
+            >
+              Back to posts
+            </Link>
+            <Link
+              href="/topics"
+              className="rounded-full bg-blue-600 px-4 py-2 text-sm font-semibold !text-white transition hover:bg-blue-500"
+            >
+              View topics
+            </Link>
+          </div>
         </div>
       </section>
 
@@ -148,12 +155,12 @@ export function TopicsPage({ initialTopics, initialHandleDirectory }: TopicsPage
 
       <section className="grid gap-4 xl:grid-cols-[360px_minmax(0,1fr)]">
         <section className="rounded-[28px] border border-zinc-200 bg-white/95 p-5 shadow-sm">
-          <h2 className="text-lg font-semibold text-zinc-950">New topic</h2>
-          <form onSubmit={handleTopicSubmit} className="mt-4 space-y-3">
+          <h2 className="text-lg font-semibold text-zinc-950">Save prompt</h2>
+          <form onSubmit={handleSubmit} className="mt-4 space-y-3">
             <select
-              value={topicForm.platform}
+              value={form.platform}
               onChange={(event) =>
-                setTopicForm((current) => ({ ...current, platform: event.target.value }))
+                setForm((current) => ({ ...current, platform: event.target.value }))
               }
               className="w-full rounded-2xl border border-zinc-300 bg-white px-4 py-3 text-sm outline-none focus:border-zinc-950"
             >
@@ -164,36 +171,27 @@ export function TopicsPage({ initialTopics, initialHandleDirectory }: TopicsPage
             </select>
 
             <select
-              value={topicForm.handle}
+              value={form.handle}
               onChange={(event) =>
-                setTopicForm((current) => ({ ...current, handle: event.target.value }))
+                setForm((current) => ({ ...current, handle: event.target.value }))
               }
               className="w-full rounded-2xl border border-zinc-300 bg-white px-4 py-3 text-sm outline-none focus:border-zinc-950"
             >
               <option value="">Select handle</option>
-              {topicFormHandleOptions.map((handle) => (
+              {formHandleOptions.map((handle) => (
                 <option key={handle} value={handle}>
                   {handle}
                 </option>
               ))}
             </select>
 
-            <input
-              value={topicForm.topic}
-              onChange={(event) =>
-                setTopicForm((current) => ({ ...current, topic: event.target.value }))
-              }
-              placeholder="Topic to improve"
-              className="w-full rounded-2xl border border-zinc-300 px-4 py-3 text-sm outline-none focus:border-zinc-950"
-            />
-
             <textarea
-              value={topicForm.notes}
+              value={form.prompt}
               onChange={(event) =>
-                setTopicForm((current) => ({ ...current, notes: event.target.value }))
+                setForm((current) => ({ ...current, prompt: event.target.value }))
               }
-              placeholder="Optional notes"
-              className="min-h-28 w-full rounded-[24px] border border-zinc-300 px-4 py-4 text-sm outline-none focus:border-zinc-950"
+              placeholder="Prompt"
+              className="min-h-40 w-full rounded-[24px] border border-zinc-300 px-4 py-4 text-sm outline-none focus:border-zinc-950"
             />
 
             <button
@@ -201,7 +199,7 @@ export function TopicsPage({ initialTopics, initialHandleDirectory }: TopicsPage
               disabled={isPending}
               className="rounded-2xl bg-zinc-950 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-zinc-800 disabled:cursor-not-allowed disabled:bg-zinc-300"
             >
-              {isPending ? "Saving..." : "Save topic"}
+              {isPending ? "Saving..." : "Save prompt"}
             </button>
           </form>
         </section>
@@ -209,9 +207,10 @@ export function TopicsPage({ initialTopics, initialHandleDirectory }: TopicsPage
         <section className="rounded-[28px] border border-zinc-200 bg-white/95 shadow-sm">
           <div className="flex flex-col gap-3 border-b border-zinc-200 px-5 py-4 xl:flex-row xl:items-center xl:justify-between">
             <div>
-              <h2 className="text-lg font-semibold text-zinc-950">Topics table</h2>
+              <h2 className="text-lg font-semibold text-zinc-950">Topic refresh table</h2>
               <p className="text-sm text-zinc-500">
-                {filteredTopics.length} visible topic{filteredTopics.length === 1 ? "" : "s"}
+                {filteredTopicRefreshes.length} visible row
+                {filteredTopicRefreshes.length === 1 ? "" : "s"}
               </p>
             </div>
 
@@ -242,9 +241,9 @@ export function TopicsPage({ initialTopics, initialHandleDirectory }: TopicsPage
             </div>
           </div>
 
-          {filteredTopics.length === 0 ? (
+          {filteredTopicRefreshes.length === 0 ? (
             <div className="px-4 py-10 text-center text-sm text-zinc-500">
-              No topics match the current filters.
+              No topic refresh rows match the current filters.
             </div>
           ) : (
             <div className="overflow-x-auto">
@@ -253,20 +252,22 @@ export function TopicsPage({ initialTopics, initialHandleDirectory }: TopicsPage
                   <tr>
                     <th className="px-4 py-3 font-medium">Platform</th>
                     <th className="px-4 py-3 font-medium">Handle</th>
-                    <th className="px-4 py-3 font-medium">Topic</th>
-                    <th className="px-4 py-3 font-medium">Notes</th>
+                    <th className="px-4 py-3 font-medium">Prompt</th>
                     <th className="px-4 py-3 font-medium">Updated</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {filteredTopics.map((topic) => (
-                    <tr key={topic.id} className="border-t border-zinc-200 align-top">
-                      <td className="px-4 py-3 font-medium text-zinc-900">{topic.platform}</td>
-                      <td className="px-4 py-3 text-zinc-700">{topic.handle}</td>
-                      <td className="px-4 py-3 text-zinc-900">{topic.topic}</td>
-                      <td className="px-4 py-3 text-zinc-600">{topic.notes || "-"}</td>
+                  {filteredTopicRefreshes.map((topicRefresh) => (
+                    <tr key={topicRefresh.id} className="border-t border-zinc-200 align-top">
+                      <td className="px-4 py-3 font-medium text-zinc-900">
+                        {topicRefresh.platform}
+                      </td>
+                      <td className="px-4 py-3 text-zinc-700">{topicRefresh.handle}</td>
+                      <td className="max-w-[520px] px-4 py-3 whitespace-pre-wrap text-zinc-900">
+                        {topicRefresh.prompt}
+                      </td>
                       <td className="px-4 py-3 text-zinc-500">
-                        {new Date(topic.updatedAt).toLocaleString()}
+                        {new Date(topicRefresh.updatedAt).toLocaleString()}
                       </td>
                     </tr>
                   ))}
