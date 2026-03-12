@@ -34,6 +34,35 @@ The app expects a reachable MinIO instance using the values in `.env`.
 - `npm run lint`
 - `npm run db:generate`
 - `npm run db:push`
+- `npm run deploy:vps -- <host>`
+
+## Deployment
+
+This repo includes a VPS deployment script at `scripts/deploy-vps.sh`.
+
+Default behavior:
+
+- pushes local `main` to `origin`
+- connects as `root`
+- deploys into `/opt/apps/Socail_Media_Approvals`
+- runs `npm ci`, Prisma generate/push, and `npm run build`
+- restarts `socail-media-approvals.service`
+
+Example:
+
+```bash
+npm run deploy:vps -- 203.57.85.94
+```
+
+Optional environment overrides:
+
+- `DEPLOY_HOST`
+- `DEPLOY_SSH_USER`
+- `DEPLOY_APP_DIR`
+- `DEPLOY_SERVICE`
+- `DEPLOY_BRANCH`
+- `DEPLOY_REMOTE`
+- `DEPLOY_SKIP_PUSH=1`
 
 ## Data Model
 
