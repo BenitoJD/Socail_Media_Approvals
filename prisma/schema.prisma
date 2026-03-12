@@ -19,6 +19,19 @@ model Post {
   updatedAt   DateTime        @updatedAt
 }
 
+model Topic {
+  id        Int      @id @default(autoincrement())
+  platform  String
+  handle    String
+  topic     String
+  notes     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([platform, handle])
+  @@unique([platform, handle, topic])
+}
+
 model PostImage {
   id        Int      @id @default(autoincrement())
   postId    Int

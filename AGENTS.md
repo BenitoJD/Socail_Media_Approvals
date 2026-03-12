@@ -29,6 +29,7 @@ This application is a moderation dashboard for social media posts:
 - `src/lib/minio.ts`: server-side MinIO upload and URL generation
 - `src/lib/minio-public.ts`: client-side public image URL builder
 - `src/lib/validation.ts`: request schemas
+- `src/lib/topics.ts`: topic query + serialization layer
 - `prisma/schema.prisma`: database schema
 
 ## Environment
@@ -78,6 +79,10 @@ The app assumes MinIO is already running and the bucket exists.
 - tracks whether the external agent has posted the content
 - values: `NOT_POSTED`, `POSTED`
 
+`Topic`
+- stores reusable topics linked to a required `platform` and `handle`
+- duplicate rows for the same `platform + handle + topic` are blocked
+
 Moderation status values:
 
 - `PENDING`
@@ -106,9 +111,27 @@ Moderation status values:
 - accepts multipart form data under `files`
 - uploads to MinIO and returns `objectKey` plus `imageUrl`
 
+`GET /api/topics`
+- optional query params: `platform`, `handle`
+
+`POST /api/topics`
+- creates a topic row for a required `platform` and `handle`
+- duplicate `platform + handle + topic` values return `409`
+
+`GET /api/topics/:id`
+- returns one topic row
+
+`PATCH /api/topics/:id`
+- updates a topic row
+- uniqueness on `platform + handle + topic` is still enforced
+
+`DELETE /api/topics/:id`
+- deletes a topic row
+
 ## Working Rules
 
 - Preserve the current API contracts. The dashboard depends on the serialized shape from `src/lib/posts.ts`.
+- Preserve the topic API contracts. Agents may rely on `GET /api/topics` with `platform` and `handle` filters.
 - Keep client/server boundaries intact. MinIO credentials must stay server-side.
 - Do not bypass Zod validation when changing API inputs.
 - If you change Prisma models, also run `npm run db:generate` and `npm run db:push`.

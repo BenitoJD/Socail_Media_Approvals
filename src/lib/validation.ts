@@ -23,6 +23,22 @@ export const markPostFailedSchema = z.object({
   failureReason: z.string().trim().max(1000).optional().or(z.literal("")),
 });
 
+export const createTopicSchema = z.object({
+  platform: z.string().trim().min(1, "Platform is required.").max(100),
+  handle: z.string().trim().min(1, "Handle is required.").max(100),
+  topic: z.string().trim().min(1, "Topic is required.").max(300),
+  notes: z.string().trim().max(2000).optional().or(z.literal("")),
+});
+
+export const updateTopicSchema = z.object({
+  platform: z.string().trim().min(1).max(100).optional(),
+  handle: z.string().trim().min(1).max(100).optional(),
+  topic: z.string().trim().min(1).max(300).optional(),
+  notes: z.string().trim().max(2000).optional().or(z.literal("")),
+});
+
 export type CreatePostInput = z.infer<typeof createPostSchema>;
 export type UpdatePostInput = z.infer<typeof updatePostSchema>;
 export type MarkPostFailedInput = z.infer<typeof markPostFailedSchema>;
+export type CreateTopicInput = z.infer<typeof createTopicSchema>;
+export type UpdateTopicInput = z.infer<typeof updateTopicSchema>;

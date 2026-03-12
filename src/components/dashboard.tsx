@@ -92,7 +92,10 @@ function isTypingTarget(target: EventTarget | null) {
   );
 }
 
-export function Dashboard({ initialPosts, initialSelectedPostId }: DashboardProps) {
+export function Dashboard({
+  initialPosts,
+  initialSelectedPostId,
+}: DashboardProps) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -699,6 +702,13 @@ export function Dashboard({ initialPosts, initialSelectedPostId }: DashboardProp
             >
               New post
             </button>
+
+            <Link
+              href="/topics"
+              className="rounded-full bg-blue-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-blue-500"
+            >
+              View topics
+            </Link>
           </div>
         </div>
       </section>

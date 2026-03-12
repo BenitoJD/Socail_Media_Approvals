@@ -71,6 +71,7 @@ Main entities:
 - `Post`
 - `PostImage`
 - `AgentPostState`
+- `Topic`
 
 Moderation states:
 
@@ -93,6 +94,17 @@ Agent queue metadata:
 - `failureReason`
 - `retryCount`
 
+Topic fields:
+
+- `platform`
+- `handle`
+- `topic`
+- `notes`
+
+Topic uniqueness:
+
+- each row is unique on `platform + handle + topic`
+
 ## API
 
 General post APIs:
@@ -104,10 +116,23 @@ General post APIs:
 - `DELETE /api/posts/:id`
 - `POST /api/uploads`
 
+Topic APIs:
+
+- `GET /api/topics`
+- `POST /api/topics`
+- `GET /api/topics/:id`
+- `PATCH /api/topics/:id`
+- `DELETE /api/topics/:id`
+
 Supported list filters:
 
 - `status`
 - `agentPostingStatus`
+- `handle`
+
+Topic list filters:
+
+- `platform`
 - `handle`
 
 Agent-oriented APIs:
@@ -130,6 +155,12 @@ Agent-oriented APIs:
 
 - `POST /api/posts/:id/post-success`
   Marks a claimed post as `POSTED`.
+
+Agent-ready topic workflow:
+
+- agents can read saved topic rows from `GET /api/topics`
+- agents can scope topics by `platform` and `handle`
+- agents can create and update planning rows without touching posts
 
 ## Agent Workflow
 
