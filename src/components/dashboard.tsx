@@ -17,8 +17,12 @@ type PostRecord = {
   handle: string | null;
   text: string;
   status: "PENDING" | "APPROVED" | "REJECTED";
-  agentPostingStatus: "NOT_POSTED" | "POSTED";
+  agentPostingStatus: "NOT_POSTED" | "CLAIMED" | "POSTED" | "FAILED";
+  claimedAt: string | null;
   postedAt: string | null;
+  lastAttemptedAt: string | null;
+  failureReason: string | null;
+  retryCount: number;
   createdAt: string;
   updatedAt: string;
   images: ImageRecord[];
@@ -59,7 +63,16 @@ function getStatusClasses(status: PostRecord["status"]) {
 
 function getPostingStatusClasses(status: PostRecord["agentPostingStatus"]) {
   if (status === "POSTED") return "bg-sky-100 text-sky-700";
+  if (status === "CLAIMED") return "bg-indigo-100 text-indigo-700";
+  if (status === "FAILED") return "bg-rose-100 text-rose-700";
   return "bg-zinc-200 text-zinc-700";
+}
+
+function getPostingStatusLabel(status: PostRecord["agentPostingStatus"]) {
+  if (status === "POSTED") return "Posted";
+  if (status === "CLAIMED") return "Claimed";
+  if (status === "FAILED") return "Failed";
+  return "Not posted";
 }
 
 function isTypingTarget(target: EventTarget | null) {
@@ -764,7 +777,7 @@ export function Dashboard({ initialPosts }: DashboardProps) {
                           : getPostingStatusClasses(post.agentPostingStatus)
                       }`}
                     >
-                      {post.agentPostingStatus === "POSTED" ? "Posted" : "Not posted"}
+                      {getPostingStatusLabel(post.agentPostingStatus)}
                     </span>
                   </div>
 
@@ -841,7 +854,7 @@ export function Dashboard({ initialPosts }: DashboardProps) {
                             selectedPost.agentPostingStatus,
                           )}`}
                         >
-                          {selectedPost.agentPostingStatus === "POSTED" ? "Posted" : "Not posted"}
+                          {getPostingStatusLabel(selectedPost.agentPostingStatus)}
                         </span>
                       </div>
                     <p className="mt-3 text-sm text-zinc-500">
@@ -1068,14 +1081,44 @@ export function Dashboard({ initialPosts }: DashboardProps) {
                       <div className="flex items-center justify-between gap-3">
                         <span className="text-zinc-500">Posting</span>
                         <span className="font-medium text-zinc-900">
-                          {selectedPost.agentPostingStatus === "POSTED" ? "Posted" : "Not posted"}
+                          {getPostingStatusLabel(selectedPost.agentPostingStatus)}
                         </span>
                       </div>
+                      {selectedPost.claimedAt ? (
+                        <div className="flex items-center justify-between gap-3">
+                          <span className="text-zinc-500">Claimed at</span>
+                          <span className="font-medium text-zinc-900">
+                            {new Date(selectedPost.claimedAt).toLocaleString()}
+                          </span>
+                        </div>
+                      ) : null}
                       {selectedPost.postedAt ? (
                         <div className="flex items-center justify-between gap-3">
                           <span className="text-zinc-500">Posted at</span>
                           <span className="font-medium text-zinc-900">
                             {new Date(selectedPost.postedAt).toLocaleString()}
+                          </span>
+                        </div>
+                      ) : null}
+                      {selectedPost.lastAttemptedAt ? (
+                        <div className="flex items-center justify-between gap-3">
+                          <span className="text-zinc-500">Last attempt</span>
+                          <span className="font-medium text-zinc-900">
+                            {new Date(selectedPost.lastAttemptedAt).toLocaleString()}
+                          </span>
+                        </div>
+                      ) : null}
+                      <div className="flex items-center justify-between gap-3">
+                        <span className="text-zinc-500">Retry count</span>
+                        <span className="font-medium text-zinc-900">
+                          {selectedPost.retryCount}
+                        </span>
+                      </div>
+                      {selectedPost.failureReason ? (
+                        <div className="flex items-start justify-between gap-3">
+                          <span className="text-zinc-500">Failure reason</span>
+                          <span className="max-w-[220px] text-right font-medium text-zinc-900">
+                            {selectedPost.failureReason}
                           </span>
                         </div>
                       ) : null}

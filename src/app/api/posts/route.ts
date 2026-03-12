@@ -13,7 +13,8 @@ export async function GET(request: NextRequest) {
       ? (statusParam as PostStatus)
       : undefined;
   const agentPostingStatus =
-    agentPostingStatusParam && ["NOT_POSTED", "POSTED"].includes(agentPostingStatusParam)
+    agentPostingStatusParam &&
+    ["NOT_POSTED", "CLAIMED", "POSTED", "FAILED"].includes(agentPostingStatusParam)
       ? (agentPostingStatusParam as AgentPostStatus)
       : undefined;
 

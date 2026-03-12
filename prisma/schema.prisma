@@ -28,13 +28,17 @@ model PostImage {
 }
 
 model AgentPostState {
-  id        Int             @id @default(autoincrement())
-  postId     Int            @unique
-  status     AgentPostStatus @default(NOT_POSTED)
-  postedAt   DateTime?
-  post       Post           @relation(fields: [postId], references: [id], onDelete: Cascade)
-  createdAt  DateTime       @default(now())
-  updatedAt  DateTime       @updatedAt
+  id             Int             @id @default(autoincrement())
+  postId         Int             @unique
+  status         AgentPostStatus @default(NOT_POSTED)
+  claimedAt      DateTime?
+  postedAt       DateTime?
+  lastAttemptedAt DateTime?
+  failureReason  String?
+  retryCount     Int             @default(0)
+  post           Post            @relation(fields: [postId], references: [id], onDelete: Cascade)
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
 }
 
 enum PostStatus {
@@ -45,5 +49,7 @@ enum PostStatus {
 
 enum AgentPostStatus {
   NOT_POSTED
+  CLAIMED
   POSTED
+  FAILED
 }

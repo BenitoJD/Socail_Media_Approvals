@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { AgentPostStatus } from "@prisma/client";
 
 import { prisma } from "@/lib/prisma";
 import { serializePost } from "@/lib/posts";
@@ -7,6 +8,46 @@ import { updatePostSchema } from "@/lib/validation";
 function parseId(value: string) {
   const id = Number(value);
   return Number.isInteger(id) && id > 0 ? id : null;
+}
+
+function getAgentStateUpdate(status: AgentPostStatus) {
+  const now = new Date();
+
+  if (status === "CLAIMED") {
+    return {
+      status,
+      claimedAt: now,
+      postedAt: null,
+      lastAttemptedAt: now,
+      failureReason: null,
+    };
+  }
+
+  if (status === "POSTED") {
+    return {
+      status,
+      claimedAt: null,
+      postedAt: now,
+      lastAttemptedAt: now,
+      failureReason: null,
+    };
+  }
+
+  if (status === "FAILED") {
+    return {
+      status,
+      claimedAt: null,
+      postedAt: null,
+      lastAttemptedAt: now,
+    };
+  }
+
+  return {
+    status,
+    claimedAt: null,
+    postedAt: null,
+    failureReason: null,
+  };
 }
 
 export async function GET(
@@ -72,6 +113,18 @@ export async function PATCH(
     );
   }
 
+  if (
+    parsed.data.agentPostingStatus === "CLAIMED" &&
+    nextModerationStatus !== "APPROVED"
+  ) {
+    return NextResponse.json(
+      {
+        error: "Only approved posts can be claimed.",
+      },
+      { status: 400 },
+    );
+  }
+
   const post = await prisma.post.update({
     where: { id },
     data: {
@@ -85,14 +138,10 @@ export async function PATCH(
           ? {
               upsert: {
                 create: {
-                  status: parsed.data.agentPostingStatus,
-                  postedAt:
-                    parsed.data.agentPostingStatus === "POSTED" ? new Date() : null,
+                  ...getAgentStateUpdate(parsed.data.agentPostingStatus),
                 },
                 update: {
-                  status: parsed.data.agentPostingStatus,
-                  postedAt:
-                    parsed.data.agentPostingStatus === "POSTED" ? new Date() : null,
+                  ...getAgentStateUpdate(parsed.data.agentPostingStatus),
                 },
               },
             }

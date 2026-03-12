@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 const statusEnum = z.enum(["PENDING", "APPROVED", "REJECTED"]);
-const agentPostingStatusEnum = z.enum(["NOT_POSTED", "POSTED"]);
+const agentPostingStatusEnum = z.enum(["NOT_POSTED", "CLAIMED", "POSTED", "FAILED"]);
 
 export const createPostSchema = z.object({
   platform: z.string().trim().max(100).optional().or(z.literal("")),
@@ -19,5 +19,10 @@ export const updatePostSchema = z.object({
   images: z.array(z.string().trim().min(1)).optional(),
 });
 
+export const markPostFailedSchema = z.object({
+  failureReason: z.string().trim().max(1000).optional().or(z.literal("")),
+});
+
 export type CreatePostInput = z.infer<typeof createPostSchema>;
 export type UpdatePostInput = z.infer<typeof updatePostSchema>;
+export type MarkPostFailedInput = z.infer<typeof markPostFailedSchema>;
