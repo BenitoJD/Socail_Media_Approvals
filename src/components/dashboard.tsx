@@ -1,6 +1,8 @@
 "use client";
 
 import Image from "next/image";
+import Link from "next/link";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useEffectEvent, useMemo, useState, useTransition } from "react";
 
 import { getPublicImageUrl } from "@/lib/minio-public";
@@ -30,6 +32,7 @@ type PostRecord = {
 
 type DashboardProps = {
   initialPosts: PostRecord[];
+  initialSelectedPostId: number | null;
 };
 
 type UploadResponse = {
@@ -89,14 +92,26 @@ function isTypingTarget(target: EventTarget | null) {
   );
 }
 
-export function Dashboard({ initialPosts }: DashboardProps) {
+export function Dashboard({ initialPosts, initialSelectedPostId }: DashboardProps) {
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const initiallyLinkedPost =
+    initialSelectedPostId !== null
+      ? initialPosts.find((post) => post.id === initialSelectedPostId) ?? null
+      : null;
   const [posts, setPosts] = useState(initialPosts);
-  const [statusFilter, setStatusFilter] = useState<StatusFilter>("PENDING");
+  const [statusFilter, setStatusFilter] = useState<StatusFilter>(
+    initiallyLinkedPost ? "ALL" : "PENDING",
+  );
   const [platformFilter, setPlatformFilter] = useState<PlatformFilter>("ALL");
   const [handleFilter, setHandleFilter] = useState("ALL");
   const [sortBy, setSortBy] = useState<SortBy>("pending-first");
   const [selectedPostId, setSelectedPostId] = useState<number | null>(
-    initialPosts.find((post) => post.status === "PENDING")?.id ?? initialPosts[0]?.id ?? null,
+    initiallyLinkedPost?.id ??
+      initialPosts.find((post) => post.status === "PENDING")?.id ??
+      initialPosts[0]?.id ??
+      null,
   );
   const [editingPostId, setEditingPostId] = useState<number | null>(null);
   const [showComposer, setShowComposer] = useState(false);
@@ -203,6 +218,25 @@ export function Dashboard({ initialPosts }: DashboardProps) {
       setSelectedPostId(filteredPosts[0]?.id ?? null);
     }
   }, [filteredPosts, selectedPostId]);
+
+  useEffect(() => {
+    const currentPostParam = searchParams.get("post");
+    const nextPostParam = selectedPostId ? String(selectedPostId) : null;
+
+    if (currentPostParam === nextPostParam) {
+      return;
+    }
+
+    const nextParams = new URLSearchParams(searchParams.toString());
+    if (nextPostParam) {
+      nextParams.set("post", nextPostParam);
+    } else {
+      nextParams.delete("post");
+    }
+
+    const nextQuery = nextParams.toString();
+    router.replace(nextQuery ? `${pathname}?${nextQuery}` : pathname, { scroll: false });
+  }, [pathname, router, searchParams, selectedPostId]);
 
   function navigateSelection(direction: 1 | -1) {
     if (!filteredPosts.length) {
@@ -863,6 +897,14 @@ export function Dashboard({ initialPosts }: DashboardProps) {
                     <p className="mt-1 text-xs uppercase tracking-[0.18em] text-zinc-400">
                       Shortcuts: A approve, R reject, E edit, ← → navigate
                     </p>
+                    <div className="mt-3">
+                      <Link
+                        href={`/?post=${selectedPost.id}`}
+                        className="text-sm font-medium text-blue-600 underline-offset-4 hover:underline"
+                      >
+                        Open direct link
+                      </Link>
+                    </div>
                   </div>
 
                   <div className="flex flex-wrap gap-2">
