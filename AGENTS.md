@@ -128,10 +128,31 @@ Moderation status values:
 `DELETE /api/topics/:id`
 - deletes a topic row
 
+`GET /api/topic-refreshes`
+- optional query params: `platform`, `handle`
+
+`POST /api/topic-refreshes`
+- creates a topic refresh row
+- duplicate `platform + handle` values return `409`
+
+`PUT /api/topic-refreshes`
+- idempotent upsert for agents keyed on `platform + handle`
+- replaces or creates the `prompt` for a single account
+
+`GET /api/topic-refreshes/:id`
+- returns one topic refresh row
+
+`PATCH /api/topic-refreshes/:id`
+- updates a topic refresh row by id
+
+`DELETE /api/topic-refreshes/:id`
+- deletes a topic refresh row
+
 ## Working Rules
 
 - Preserve the current API contracts. The dashboard depends on the serialized shape from `src/lib/posts.ts`.
 - Preserve the topic API contracts. Agents may rely on `GET /api/topics` with `platform` and `handle` filters.
+- Preserve the topic refresh API contracts. Agents may rely on `PUT /api/topic-refreshes` as an idempotent write path.
 - Keep client/server boundaries intact. MinIO credentials must stay server-side.
 - Do not bypass Zod validation when changing API inputs.
 - If you change Prisma models, also run `npm run db:generate` and `npm run db:push`.

@@ -124,6 +124,15 @@ Topic APIs:
 - `PATCH /api/topics/:id`
 - `DELETE /api/topics/:id`
 
+Topic refresh APIs:
+
+- `GET /api/topic-refreshes`
+- `POST /api/topic-refreshes`
+- `PUT /api/topic-refreshes`
+- `GET /api/topic-refreshes/:id`
+- `PATCH /api/topic-refreshes/:id`
+- `DELETE /api/topic-refreshes/:id`
+
 Supported list filters:
 
 - `status`
@@ -161,6 +170,12 @@ Agent-ready topic workflow:
 - agents can read saved topic rows from `GET /api/topics`
 - agents can scope topics by `platform` and `handle`
 - agents can create and update planning rows without touching posts
+
+Agent-ready topic refresh workflow:
+
+- agents can read refresh prompts from `GET /api/topic-refreshes?platform=...&handle=...`
+- agents can idempotently write refresh prompts with `PUT /api/topic-refreshes`
+- `platform + handle` is the natural unique key for topic refresh rows
 
 ## Agent Workflow
 

@@ -37,8 +37,22 @@ export const updateTopicSchema = z.object({
   notes: z.string().trim().max(2000).optional().or(z.literal("")),
 });
 
+export const createTopicRefreshSchema = z.object({
+  platform: z.string().trim().min(1, "Platform is required.").max(100),
+  handle: z.string().trim().min(1, "Handle is required.").max(100),
+  prompt: z.string().trim().min(1, "Prompt is required.").max(5000),
+});
+
+export const updateTopicRefreshSchema = z.object({
+  platform: z.string().trim().min(1).max(100).optional(),
+  handle: z.string().trim().min(1).max(100).optional(),
+  prompt: z.string().trim().min(1).max(5000).optional(),
+});
+
 export type CreatePostInput = z.infer<typeof createPostSchema>;
 export type UpdatePostInput = z.infer<typeof updatePostSchema>;
 export type MarkPostFailedInput = z.infer<typeof markPostFailedSchema>;
 export type CreateTopicInput = z.infer<typeof createTopicSchema>;
 export type UpdateTopicInput = z.infer<typeof updateTopicSchema>;
+export type CreateTopicRefreshInput = z.infer<typeof createTopicRefreshSchema>;
+export type UpdateTopicRefreshInput = z.infer<typeof updateTopicRefreshSchema>;

@@ -127,7 +127,7 @@ export function TopicsPage({ initialTopics, initialHandleDirectory }: TopicsPage
 
           <Link
             href="/"
-            className="rounded-full bg-zinc-950 px-4 py-2 text-sm font-semibold text-white transition hover:bg-zinc-800"
+            className="rounded-full bg-zinc-950 px-4 py-2 text-sm font-semibold !text-white transition hover:bg-zinc-800"
           >
             Back to posts
           </Link>
