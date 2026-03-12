@@ -3,10 +3,15 @@ import { AgentPostStatus, PostStatus } from "@prisma/client";
 import { getImageUrl } from "@/lib/minio";
 import { prisma } from "@/lib/prisma";
 
-export async function getPosts(status?: PostStatus, agentPostingStatus?: AgentPostStatus) {
+export async function getPosts(
+  status?: PostStatus,
+  agentPostingStatus?: AgentPostStatus,
+  handle?: string,
+) {
   return prisma.post.findMany({
     where: {
       ...(status ? { status } : {}),
+      ...(handle ? { handle } : {}),
       ...(agentPostingStatus
         ? {
             agentState: {
@@ -31,11 +36,12 @@ export async function getPosts(status?: PostStatus, agentPostingStatus?: AgentPo
   });
 }
 
-export async function getNextAgentPost(platform?: string) {
+export async function getNextAgentPost(platform?: string, handle?: string) {
   return prisma.post.findFirst({
     where: {
       status: "APPROVED",
       ...(platform ? { platform } : {}),
+      ...(handle ? { handle } : {}),
       agentState: {
         is: {
           status: {

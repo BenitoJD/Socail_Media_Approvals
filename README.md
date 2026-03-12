@@ -79,6 +79,7 @@ Supported list filters:
 
 - `status`
 - `agentPostingStatus`
+- `handle`
 
 Agent-oriented APIs:
 
@@ -106,6 +107,7 @@ Agent-oriented APIs:
 Recommended flow for posting agents:
 
 1. Call `GET /api/posts/next` optionally with `?platform=...`.
+   You can also pass `?handle=...` to target a specific account.
 2. Claim the returned post with `POST /api/posts/:id/claim`.
 3. Attempt to publish the content externally.
 4. If publish succeeds, call `POST /api/posts/:id/post-success`.

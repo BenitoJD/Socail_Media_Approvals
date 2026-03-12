@@ -8,6 +8,7 @@ import { createPostSchema } from "@/lib/validation";
 export async function GET(request: NextRequest) {
   const statusParam = request.nextUrl.searchParams.get("status");
   const agentPostingStatusParam = request.nextUrl.searchParams.get("agentPostingStatus");
+  const handleParam = request.nextUrl.searchParams.get("handle")?.trim() || undefined;
   const status =
     statusParam && ["PENDING", "APPROVED", "REJECTED"].includes(statusParam)
       ? (statusParam as PostStatus)
@@ -18,7 +19,7 @@ export async function GET(request: NextRequest) {
       ? (agentPostingStatusParam as AgentPostStatus)
       : undefined;
 
-  const posts = await getPosts(status, agentPostingStatus);
+  const posts = await getPosts(status, agentPostingStatus, handleParam);
   return NextResponse.json(posts.map(serializePost));
 }
 
