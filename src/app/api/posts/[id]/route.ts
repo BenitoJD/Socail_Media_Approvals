@@ -115,3 +115,27 @@ export async function PATCH(
 
   return NextResponse.json(serializePost(post));
 }
+
+export async function DELETE(
+  _request: NextRequest,
+  { params }: { params: Promise<{ id: string }> },
+) {
+  const { id: rawId } = await params;
+  const id = parseId(rawId);
+
+  if (!id) {
+    return NextResponse.json({ error: "Invalid id." }, { status: 400 });
+  }
+
+  const existing = await prisma.post.findUnique({ where: { id } });
+
+  if (!existing) {
+    return NextResponse.json({ error: "Post not found." }, { status: 404 });
+  }
+
+  await prisma.post.delete({
+    where: { id },
+  });
+
+  return NextResponse.json({ success: true });
+}
